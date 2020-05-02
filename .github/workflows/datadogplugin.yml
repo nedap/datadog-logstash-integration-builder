@@ -1,0 +1,27 @@
+name: Datadog Logstash plugin
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+    - name: Install dependencies and build artifact
+      run: |
+          pip install "datadog-checks-dev[cli]"
+          git clone https://github.com/DataDog/integrations-extras.git
+          ddev config set extras ./integrations-extras
+          ddev -e release build logstash
+          ls integrations-extras/logstash/dist
+    - name: Upload artifact
+      uses: skx/github-action-publish-binaries@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        args: 'integrations-extras/logstash/dist/*'
